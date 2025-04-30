@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { api } from "./service/api.js";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,7 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -23,23 +24,15 @@ import {
 import { useEffect, useState } from "react";
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "O nome deve ter no mínimo 2 caracteres." })
-    .max(50, { message: "O nome deve ter no máximo 50 caracteres." }),
+  name: z.string(),
 
-  description: z
-    .string()
-    .min(2, { message: "A descrição deve ter no mínimo 2 caracteres." })
-    .max(50, { message: "A descrição deve ter no máximo 50 caracteres." }),
+  description: z.string(),
 
-  link: z
-    .string()
-    .min(2, { message: "O link deve ter no mínimo 2 caracteres." })
-    .max(50, { message: "O link deve ter no máximo 50 caracteres." }),
+  link: z.string(),
 });
 
 interface Projetos {
+  id: string;
   name: string;
   description: string;
   link: string;
@@ -54,9 +47,18 @@ export function App() {
 
   function insertTag(tag: string) {
     setTags((prevTags) => [...prevTags, tag]);
-    console.log(tags);
   }
 
+  async function deleteProjeto(id: string) {
+    try {
+      await api.delete(`/projetos/${id}`);
+      toast.success("Projeto deletado.");
+    } catch {
+      toast.error("Erro");
+    }
+    buscaProjetos("");
+    return;
+  }
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -78,11 +80,13 @@ export function App() {
 
     try {
       await api.post("/projetos", data);
-      alert("cadastrado");
-      buscaProjetos();
+      toast.success("Projeto criado!");
+      buscaProjetos("");
     } catch {
-      alert("erro");
+      toast.error("Erro ao criar o projeto...");
     }
+
+    return;
   }
 
   async function buscaProjetos(query?: string) {
@@ -107,36 +111,46 @@ export function App() {
         <form className="px-10 py-10">
           <Input
             placeholder="Pesquisar por projeto..."
-            className="text-zinc-50"
+            className="text-zinc-950 bg-zinc-50"
             onChange={(e) => buscaProjetos(e.target.value)}
           />
         </form>
 
         <div className="cards grid grid-cols-3 gap-4 px-10 py-10">
-          {projetos.map(
-            (projeto, index) =>
-              projeto && projeto.tags ? (
-                <a
-                  key={index}
-                  href="#"
-                  target="blank"
-                  className="card bg-zinc-100 p-5 rounded-2xl shadow-lg"
-                >
-                  <h1 className="text-sm font-bold">{projeto.name}</h1>
-                  <p className="text-xs">{projeto.description}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {/* Aqui é onde separa e faz um novo map */}
-                    {projeto.tags.split(",").map((tag, index) => (
+          {projetos.map((projeto, index) =>
+            projeto ? (
+              <div
+                key={index}
+                className="card flex flex-col relative bg-zinc-100 p-5 rounded-2xl shadow-lg"
+              >
+                <h1 className="text-sm font-bold">{projeto.name}</h1>
+                <p className="text-xs">{projeto.description}</p>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {projeto.tags &&
+                    projeto.tags.split(",").map((tag, index) => (
                       <div
                         key={index}
-                        className="tag bg-red-500 text-zinc-50 font-bold text-xs py-1 px-3 rounded-4xl mt-3"
+                        className="tag  odd:bg-red-500 even:bg-zinc-950 text-zinc-50 font-bold text-xs py-1 px-3 rounded-4xl mt-3"
                       >
                         {tag.trim()}
                       </div>
                     ))}
-                  </div>
-                </a>
-              ) : null // Se o projeto ou tags não existir, não renderiza nada
+                </div>
+                <Button
+                  className="py-0 ml-auto h-6 px-10 rounded-2xl mt-auto"
+                  asChild
+                >
+                  <a href={projeto.link} target="blank">
+                    Ver
+                  </a>
+                </Button>
+
+                <X
+                  className="text-zinc-950 absolute right-2 top-2"
+                  onClick={() => deleteProjeto(projeto.id)}
+                />
+              </div>
+            ) : null
           )}
         </div>
 
