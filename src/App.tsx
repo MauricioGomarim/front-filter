@@ -116,7 +116,7 @@ export function App() {
           />
         </form>
 
-        <div className="cards grid grid-cols-2 md:grid-cols-3 gap-4 px-10 py-10">
+        <div className="cards grid grid-cols-1 md:grid-cols-3 gap-4 px-10 py-10">
           {projetos.map((projeto, index) =>
             projeto ? (
               <div
