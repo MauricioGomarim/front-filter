@@ -116,7 +116,7 @@ export function App() {
           />
         </form>
 
-        <div className="cards grid grid-cols-3 gap-4 px-10 py-10">
+        <div className="cards grid grid-cols-2 md:grid-cols-3 gap-4 px-10 py-10">
           {projetos.map((projeto, index) =>
             projeto ? (
               <div
@@ -130,7 +130,7 @@ export function App() {
                     projeto.tags.split(",").map((tag, index) => (
                       <div
                         key={index}
-                        className="tag  odd:bg-red-500 even:bg-zinc-950 text-zinc-50 font-bold text-xs py-1 px-3 rounded-4xl mt-3"
+                        className="tag   odd:bg-red-500 even:bg-zinc-950 text-zinc-50 font-bold text-[10px] py-1 px-3 rounded-4xl mt-3"
                       >
                         {tag.trim()}
                       </div>
@@ -141,7 +141,7 @@ export function App() {
                   asChild
                 >
                   <a href={projeto.link} target="blank">
-                    Ver
+                    Acessar
                   </a>
                 </Button>
 
