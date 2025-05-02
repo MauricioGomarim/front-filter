@@ -22,6 +22,19 @@ import {
   FormMessage,
 } from "./components/ui/form";
 import { useEffect, useState } from "react";
+import { SearchForm } from "./components/form";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./components/ui/alert-dialog";
 
 const formSchema = z.object({
   name: z.string(),
@@ -42,6 +55,7 @@ interface Projetos {
 export function App() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagsInput] = useState<string>("");
+  const [open, setOpen] = useState(false);
 
   const [projetos, setProjetos] = useState<Projetos[]>([]);
 
@@ -82,6 +96,7 @@ export function App() {
       await api.post("/projetos", data);
       toast.success("Projeto criado!");
       buscaProjetos("");
+      setOpen(false);
     } catch {
       toast.error("Erro ao criar o projeto...");
     }
@@ -108,13 +123,7 @@ export function App() {
       </header>
 
       <main className="max-w-5xl mx-auto h-screen  ">
-        <form className="px-10 py-10">
-          <Input
-            placeholder="Pesquisar por projeto..."
-            className="text-zinc-950 bg-zinc-50"
-            onChange={(e) => buscaProjetos(e.target.value)}
-          />
-        </form>
+        <SearchForm buscaProjetos={buscaProjetos} />
 
         <div className="cards grid grid-cols-1 md:grid-cols-3 gap-4 px-10 py-10">
           {projetos.map((projeto, index) =>
@@ -145,16 +154,35 @@ export function App() {
                   </a>
                 </Button>
 
-                <X
-                  className="text-zinc-950 absolute right-2 top-2"
-                  onClick={() => deleteProjeto(projeto.id)}
-                />
+                <AlertDialog>
+                  <AlertDialogTrigger>
+                    <X className="text-zinc-950 cursor-pointer absolute right-2 top-2" />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-center">
+                        Deseja excluir esse projeto ?
+                      </AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="!justify-center">
+                      <AlertDialogCancel className="cursor-pointer">
+                        Não
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="cursor-pointer"
+                        onClick={() => deleteProjeto(projeto.id)}
+                      >
+                        Sim
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : null
           )}
         </div>
 
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className="bg-blue-700 p-2 rounded-full fixed right-10 bottom-10">
             <Plus className="text-zinc-50 cursor-pointer" />
           </DialogTrigger>
