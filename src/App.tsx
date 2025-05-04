@@ -21,7 +21,7 @@ import {
   FormItem,
   FormMessage,
 } from "./components/ui/form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SearchForm } from "./components/form";
 
 import {
@@ -29,7 +29,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -53,6 +52,10 @@ interface Projetos {
 }
 
 export function App() {
+  const audioSuccessRef = useRef<HTMLAudioElement>(null);
+  const audioErrorRef = useRef<HTMLAudioElement>(null);
+  const audioErrorRef2 = useRef<HTMLAudioElement>(null);
+
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagsInput] = useState<string>("");
   const [open, setOpen] = useState(false);
@@ -67,6 +70,7 @@ export function App() {
     try {
       await api.delete(`/projetos/${id}`);
       toast.success("Projeto deletado.");
+      audioErrorRef2.current?.play();
     } catch {
       toast.error("Erro");
     }
@@ -97,8 +101,10 @@ export function App() {
       toast.success("Projeto criado!");
       buscaProjetos("");
       setOpen(false);
+      audioSuccessRef.current?.play();
     } catch {
       toast.error("Erro ao criar o projeto...");
+      audioErrorRef.current?.play();
     }
 
     return;
@@ -145,14 +151,16 @@ export function App() {
                       </div>
                     ))}
                 </div>
-                <Button
-                  className="py-0 ml-auto h-6 px-10 rounded-2xl mt-auto"
-                  asChild
-                >
-                  <a href={projeto.link} target="blank">
-                    Acessar
-                  </a>
-                </Button>
+                {projeto.link ? (
+                  <Button
+                    className="py-0 ml-auto h-6 px-10 rounded-2xl mt-auto"
+                    asChild
+                  >
+                    <a href={projeto.link} target="blank">
+                      Acessar
+                    </a>
+                  </Button>
+                ) : null}
 
                 <AlertDialog>
                   <AlertDialogTrigger>
@@ -270,6 +278,22 @@ export function App() {
           </DialogContent>
         </Dialog>
       </main>
+
+      <audio
+        ref={audioSuccessRef}
+        src="../public/utils/elegosta.mp3"
+        preload="auto"
+      />
+      <audio
+        ref={audioErrorRef}
+        src="../public/utils/quepapelao.mp3"
+        preload="auto"
+      />
+      <audio
+        ref={audioErrorRef2}
+        src="../public/utils/tome.mp3"
+        preload="auto"
+      />
     </>
   );
 }
