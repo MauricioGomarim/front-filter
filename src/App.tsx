@@ -279,26 +279,9 @@ export function App() {
         </Dialog>
       </main>
 
-      <audio
-        ref={audioSuccessRef}
-        src="/utils/elegosta.mp3"
-        preload="auto"
-        controls
-
-      />
-      <audio
-        ref={audioErrorRef}
-        src="/utils/quepapelao.mp3"
-        preload="auto"
-        controls
-
-      />
-      <audio
-        ref={audioErrorRef2}
-        src="/utils/tome.mp3"
-        preload="auto"
-        controls
-      />
+      <audio ref={audioSuccessRef} src="/utils/elegosta.mp3" preload="auto" />
+      <audio ref={audioErrorRef} src="/utils/quepapelao.mp3" preload="auto" />
+      <audio ref={audioErrorRef2} src="/utils/tome.mp3" preload="auto" />
     </>
   );
 }
