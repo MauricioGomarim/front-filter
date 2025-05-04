@@ -283,16 +283,21 @@ export function App() {
         ref={audioSuccessRef}
         src="../public/utils/elegosta.mp3"
         preload="auto"
+        controls
+
       />
       <audio
         ref={audioErrorRef}
         src="../public/utils/quepapelao.mp3"
         preload="auto"
+        controls
+
       />
       <audio
         ref={audioErrorRef2}
         src="../public/utils/tome.mp3"
         preload="auto"
+        controls
       />
     </>
   );
