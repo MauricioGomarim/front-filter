@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 
-import { Plus, X } from "lucide-react";
+import { Plus, X, Cog } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -36,7 +36,7 @@ import {
 } from "./components/ui/alert-dialog";
 
 const formSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1, { message: "O nome é obrigatório." }),
 
   description: z.string(),
 
@@ -56,6 +56,9 @@ export function App() {
   const audioErrorRef = useRef<HTMLAudioElement>(null);
   const audioErrorRef2 = useRef<HTMLAudioElement>(null);
 
+  const [projetoSelecionado, setProjetoSelecionado] = useState<Projetos | null>(
+    null
+  );
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagsInput] = useState<string>("");
   const [open, setOpen] = useState(false);
@@ -96,15 +99,28 @@ export function App() {
     setTagsInput("");
     setTags([]);
 
-    try {
-      await api.post("/projetos", data);
-      toast.success("Projeto criado!");
-      buscaProjetos("");
-      setOpen(false);
-      audioSuccessRef.current?.play();
-    } catch {
-      toast.error("Erro ao criar o projeto...");
-      audioErrorRef.current?.play();
+    if (!projetoSelecionado) {
+      try {
+        await api.post("/projetos", data);
+        toast.success("Projeto criado!");
+        buscaProjetos("");
+        setOpen(false);
+        audioSuccessRef.current?.play();
+      } catch {
+        toast.error("Erro ao criar o projeto...");
+        audioErrorRef.current?.play();
+      }
+    } else {
+      try {
+        await api.put(`/projetos/${projetoSelecionado.id}`, data);
+        toast.success("Projeto editado!");
+        buscaProjetos("");
+        setOpen(false);
+        audioSuccessRef.current?.play();
+      } catch {
+        toast.error("Erro ao editar o projeto...");
+        audioErrorRef.current?.play();
+      }
     }
 
     return;
@@ -119,6 +135,18 @@ export function App() {
   useEffect(() => {
     buscaProjetos("");
   }, []);
+
+  useEffect(() => {
+    if (projetoSelecionado) {
+      form.setValue("name", projetoSelecionado.name);
+      form.setValue("description", projetoSelecionado.description);
+      form.setValue("link", projetoSelecionado.link);
+
+      if (projetoSelecionado.tags) {
+        setTags(projetoSelecionado.tags.split(",").map((tag) => tag.trim()));
+      }
+    }
+  }, [projetoSelecionado]);
 
   return (
     <>
@@ -163,9 +191,23 @@ export function App() {
                 ) : null}
 
                 <AlertDialog>
-                  <AlertDialogTrigger>
-                    <X className="text-zinc-950 cursor-pointer absolute right-2 top-2" />
-                  </AlertDialogTrigger>
+                  <div className="cursor-pointer absolute right-2 top-2 flex">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Cog
+                          className="text-zinc-950 cursor-pointer"
+                          onClick={() => {
+                            setProjetoSelecionado(projeto); // define o projeto atual
+                            setOpen(true); // abre o Dialog externo
+                          }}
+                        />
+                      </DialogTrigger>
+                    </Dialog>
+
+                    <AlertDialogTrigger>
+                      <X className="text-zinc-950 cursor-pointer" />
+                    </AlertDialogTrigger>
+                  </div>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-center">
@@ -191,12 +233,23 @@ export function App() {
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger className="bg-blue-700 p-2 rounded-full fixed right-10 bottom-10">
+          <DialogTrigger
+            className="bg-blue-700 p-2 rounded-full fixed right-10 bottom-10"
+            onClick={() => {
+              setProjetoSelecionado(null);
+              form.reset(); // limpa todos os campos
+              setTags([]); // limpa as tags
+              setTagsInput(""); // limpa input de tags
+              setOpen(true); // abre o modal
+            }}
+          >
             <Plus className="text-zinc-50 cursor-pointer" />
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Cadastrar site</DialogTitle>
+              <DialogTitle>
+                {projetoSelecionado ? "Editar site" : "Cadastrar site"}
+              </DialogTitle>
             </DialogHeader>
 
             <Form {...form}>
@@ -271,7 +324,7 @@ export function App() {
                   type="submit"
                   className="bg-blue-700 hover:bg-blue-600 cursor-pointer"
                 >
-                  Cadastrar
+                  Salvar
                 </Button>
               </form>
             </Form>
